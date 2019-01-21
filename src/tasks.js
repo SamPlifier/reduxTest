@@ -116,6 +116,10 @@ document.getElementById('showComplete').addEventListener('change', ({target}) =>
     const showComplete = target.checked;
     tasksDispatcher.dispatch(showTasksAction(showComplete));
 });
+document.forms.undo.addEventListener('submit', (e) => {
+    e.preventDefault();
+    tasksStore.revertLastState();
+})
 
 tasksStore.addListener(()=>{
     render();
