@@ -22,7 +22,7 @@ const showTasksAction = (show) => {
 const completeTaskAction = (id, isComplete) => {
     return {
         type: COMPLETE_TASK,
-        id,
+        id: id,
         value: isComplete
     }
 };
@@ -65,19 +65,19 @@ class TasksStore extends ReduceStore {
                     complete: false
                 });
                 return newState;
-                break;
             case SHOW_TASKS:
                 newState = {...state, tasks: [...state.tasks], showComplete: action.value};
                 return newState;
-                break;
-            default:
-                break;
+            case COMPLETE_TASK:
+                newState = {...state, tasks: [...state.tasks]};
+                const affectedElementIndex = newState.tasks.findIndex(t => t.id === action.id);
+                newState.tasks[affectedElementIndex] = {...state.tasks[affectedElementIndex], complete: action.id};
+                return newState;
         }
         return state;
     }
     getState() {
         return this.__state;
-        console.log(this.__state +"getState from tasks store");
     }
 }
 
@@ -92,9 +92,16 @@ const render = () => {
     const tasksSection = document.getElementById(`tasks`);
     const state = tasksStore.getState();
     const rendered = state.tasks
-    .filter(task => state.showComplete ? true : !tasks.complete)
+    .filter(task => state.showComplete ? true : !task.complete)
     .map(TaskComponent).join('');
     tasksSection.innerHTML = rendered;
+    document.getElementsByName('taskCompleteCheck').forEach(element=> {
+        element.addEventListener('change', (e) => {
+            const id = e.target.attributes['data-taskid'].value;
+            const checked = e.target.checked;
+            tasksDispatcher.dispatch(completeTaskAction(id,checked));
+        });
+    });
 }
 
 document.forms.newTask.addEventListener(`submit`, (e) => {
@@ -109,9 +116,9 @@ document.getElementById('showComplete').addEventListener('change', ({target}) =>
     const showComplete = target.checked;
     tasksDispatcher.dispatch(showTasksAction(showComplete));
 });
+
 tasksStore.addListener(()=>{
     render();
-})
-tasksDispatcher.dispatch(`TEST_DISPATCH`);
+});
 
 render();
